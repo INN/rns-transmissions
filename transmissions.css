@@ -1,0 +1,21 @@
+#rns_transmissions_info .form-group {
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  padding: 1em 0;
+}
+
+#rns_transmissions_info .for-group {
+  float: left;
+  padding: 0 1em 0 0;
+  width: 120px;
+}
+
+#rns_transmissions_info .for-option {
+  display: block;
+  margin-left: 140px;
+}
+
+#rns_transmissions_info input[type="text"] {
+  width: 100%;
+  max-width: 250px;
+}
