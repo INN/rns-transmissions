@@ -106,7 +106,7 @@ function rns_send_transmission( $post_ID, $post ) {
 			$html = apply_filters( 'the_content', $post->post_content );
 
 			$campaign_content = array(
-				'text' => wp_strip_all_tags($html)
+				'url' => get_permalink( $post->ID )
 			);
 
 			$response = $mc_api->campaigns->create(
