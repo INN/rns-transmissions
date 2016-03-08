@@ -184,7 +184,7 @@ function rns_transmissions_render_info_metabox($post, $args) {
 	$custom_fields = get_post_custom();
 
 	foreach ( $fields as $key => $field ) {
-		$field_value = maybe_unserialize( $custom_fields[$field['id']][0] );
+		$field_value = get_post_meta( $post->ID, $field['id'], true );
 
 		if ( $field['type'] == 'text' ) {
 			$input_tmpl = '<div class="form-group"><label class="for-group" for="%1$s">%2$s</label><input type="text" name="%1$s" id="%1$s" value="%3$s" /></div>';
@@ -211,7 +211,7 @@ function rns_transmissions_render_info_metabox($post, $args) {
 				$option_tmpl = '<label class="for-option" for="%1$s"><input type="checkbox" name="%1$s[]" id="%1$s" value="%3$s" %5$s> %2$s</label>';
 				$option = sprintf(
 					$option_tmpl, $field['id'], $label, $value, $idx,
-					checked( in_array( $value, $field_value ), true, false )
+					checked( $value == $field_value || in_array( $value, $field_value ), true, false )
 				);
 				print $option;
 			}
