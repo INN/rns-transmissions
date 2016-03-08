@@ -1,15 +1,33 @@
 <?php
 
 function rns_transmissions_load_css() {
+	$plugin_url = plugins_url( basename( dirname( __DIR__ ), __DIR__ ) );
+
 	wp_register_style(
 		'rns_transmissions_css',
-		plugins_url( basename( dirname( __DIR__ ), __DIR__ ) ) . '/transmissions.css',
+		$plugin_url . '/transmissions.css',
 		false,
 		'1.0.0'
 	);
 	wp_enqueue_style( 'rns_transmissions_css' );
+
+	wp_register_script(
+		'rns-download-js',
+		$plugin_url . '/assets/js/rns-download.js',
+		array('jquery'),
+		'1.0.0',
+		true
+	);
+	wp_enqueue_script( 'rns-download-js' );
 }
 add_action( 'admin_enqueue_scripts', 'rns_transmissions_load_css' );
+
+/**
+ * JS for the post page
+ */
+function rns_admin_enqueue_assets() {
+}
+add_action('admin_enqueue_scripts', 'rns_admin_enqueue_assets');
 
 function update_available_lists() {
 	$options = get_option( 'rns_transmissions_options' );

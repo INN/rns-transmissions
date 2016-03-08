@@ -92,10 +92,6 @@ function rns_transmissions_post_page_metabox( $post ) {
 }
 
 function rns_transmissions_fix_for_ap_metabox() {
-	// $options = get_option( 'rns_transmissions_options' );
-	// $default_ap_headers = $options['default_ap_headers'];
-	// echo '<p>Headers:</p>';
-	// echo '<textarea name="_rns_transmission_ap_headers" id="_rns_transmission_ap_headers" style="width: 100%;" rows="5">' . $default_ap_headers . '</textarea>';
 	echo '
 		<form action="post.php">
 		<input type="submit" name="save" id="" value="Save Changes" class="button">
