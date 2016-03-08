@@ -12,6 +12,8 @@ License URI:
 
 // Dashboard functions such as the settings page
 function rns_transmission_init() {
+	define( 'RNS_TRANSMISSIONS_DIR', __DIR__ );
+
 	if ( is_admin() ){
 	  require_once( dirname(__FILE__) . '/includes/admin.php' );
 	}
@@ -31,5 +33,7 @@ function rns_transmission_init() {
 	// Custom post type
 	require_once( dirname(__FILE__) . '/includes/types.php' );
 	register_cpt_rns_transmission();
+
+	add_filter( 'single_template', 'rns_override_transmission_template' );
 }
 add_action( 'init', 'rns_transmission_init' );

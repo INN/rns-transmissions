@@ -2,7 +2,6 @@
 
 function rns_transmissions_init() {
 	if ( isset( $_POST['rns_create_transmission'] ) || isset( $_POST['rns_recreate_transmission'] ) ) {
-		// if ( RNS_TRANSMISSIONS_DEBUG === true ) wp_die(var_dump($_POST)); // debugging
 		if ( isset( $_POST['rns_recreate_transmission'] ) ) {
 			$post = $_POST['post_ID'];
 			$existing_transmission = get_post_meta( $post, '_rns_transmission_id', true );
@@ -711,4 +710,14 @@ function convert_number_to_words($number) {
 	}
 
 	return $string;
+}
+
+function rns_override_transmission_template($template) {
+	global $post;
+
+	if ( $post->post_type == 'rns_transmission' ) {
+		return RNS_TRANSMISSIONS_DIR . '/single-rns_transmission.php';
+	}
+
+	return $template;
 }

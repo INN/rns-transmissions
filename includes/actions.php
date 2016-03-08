@@ -99,7 +99,7 @@ function rns_send_transmission( $post_ID, $post ) {
 				'from_email' => $list['default_from_email'],
 				'from_name' => $list['default_from_name'],
 				'title' => $post->post_title . ' (' . $list['name'] . ')',
-				'subject' => $post->post_title,
+				'subject' => rns_maybe_include_slug_in_subject( $post ),
 				'list_id' => $list_id
 			));
 
@@ -137,7 +137,10 @@ add_action( 'publish_rns_transmission', 'rns_send_transmission', 30, 2 );
  * Schedule a new transmission when a post is scheduled.
  */
 function rns_schedule_transmission( $post ) {
-	/* TODO: Replace Campaign Monitor with MailChimp */
+	/* TODO:
+	 * What is this function used for? It was commented out.
+	 * Maybe replace Campaign Monitor with MailChimp
+	 */
 
 	// Sleep for a wink, just to see whether that helps us ensure the post is live
 	sleep( 5 );
@@ -188,46 +191,50 @@ function rns_schedule_transmission( $post ) {
  *
  * @source http://wordpress.stackexchange.com/questions/36118/
  */
-function rns_transmissions_hide_publishing_actions(){
-  global $post;
-  if( $post->post_type == 'rns_transmission' ) {
-    if ( $post->post_status != 'pending') {
-      echo '
-        <style type="text/css">
-          #major-publishing-actions {
-            display:none;
-          }
-        </style>
-      ';
-    }
-    if ( $post->post_status == 'pending' ) {
-      echo '
-        <!--
-          possibly hide these:
-          #wp-content-editor-tools,
-          .mceToolbar,
-        -->
-        <style type="text/css">
-          #minor-publishing-actions,
-          .misc-pub-section,
-          .p2p-create-connections,
-          .p2p-col-delete {
-            display: none;
-          }
-          .curtime {
-            display: block;
-          }
-          .edit-timestamp {
-            display: none;
-          }
-        </style>
-        <script type="text/javascript" charset="utf-8">
-          window.onload = function() {
-            document.getElementById("title").disabled = true;
-          }
-        </script>
-      ';
-      add_action( 'admin_notices', 'rns_transmissions_pending_transmission_admin_notice' );
-    }
+function rns_transmissions_hide_publishing_actions() {
+	/* TODO:
+	 * What is this used for? It was/is commented out.
+	 */
+	global $post;
+
+	if( $post->post_type == 'rns_transmission' ) {
+		if ( $post->post_status != 'pending') {
+			echo '
+				<style type="text/css">
+				#major-publishing-actions {
+				display:none;
+		}
+		</style>
+			';
+		}
+		if ( $post->post_status == 'pending' ) {
+			echo '
+				<!--
+				possibly hide these:
+				#wp-content-editor-tools,
+				.mceToolbar,
+				-->
+				<style type="text/css">
+				#minor-publishing-actions,
+				.misc-pub-section,
+				.p2p-create-connections,
+				.p2p-col-delete {
+					display: none;
+		}
+		.curtime {
+			display: block;
+		}
+		.edit-timestamp {
+			display: none;
+		}
+		</style>
+			<script type="text/javascript" charset="utf-8">
+window.onload = function() {
+	document.getElementById("title").disabled = true;
+		}
+		</script>
+	  ';
+	  add_action( 'admin_notices', 'rns_transmissions_pending_transmission_admin_notice' );
+	}
   }
 }
