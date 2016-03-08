@@ -109,7 +109,7 @@ function rns_send_transmission( $post_ID, $post ) {
 				'text' => wp_strip_all_tags($html)
 			);
 
-			$response = $this->api->campaigns->create(
+			$response = $mc_api->campaigns->create(
 				'plaintext',
 				$campaign_options,
 				$campaign_content,
