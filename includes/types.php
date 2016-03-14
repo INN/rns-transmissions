@@ -51,7 +51,7 @@ function register_cpt_rns_transmission() {
 	$mc_tools_args = array(
 		'preview' => false,
 		'editor' => false,
-		'settings' => true
+		'settings' => false
 	);
 	mailchimp_tools_register_for_post_type( 'rns_transmission', $mc_tools_args );
 }

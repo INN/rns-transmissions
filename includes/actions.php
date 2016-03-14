@@ -80,53 +80,66 @@ function rns_send_transmission( $post_ID, $post ) {
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) rns_generic_transmission_error();
 	if ( defined('DOING_AJAX') && DOING_AJAX ) rns_generic_transmission_error();
 	if ( defined('DOING_CRON') && DOING_CRON ) rns_generic_transmission_error();
+	if ( ! isset( $options['lists_enabled'] ) ) rns_generic_transmission_error();
 
 	$mc_api = mailchimp_tools_get_api_handle();
 
 	if ( ! empty( $mc_api ) ) {
 		/* List IDs that we'll send to */
 		$recipients = get_post_meta( $post_ID, '_rns_transmission_recipients', false );
+		$list_id = $options['lists_enabled'][0];
+		$group_id = $options['list_groups'][$list_id]['default_group'];
 
-		foreach ( $recipients as $idx => $list_id) {
-			// Grab the list from MC to use its default values for to/from address
-			$list_results = $mc_api->lists->getList( array(
-				'list_id' => $list_id
-			) );
-			$list = $list_results['data'][0];
+		// Grab the list from MC to use its default values for to/from address
+		$list_results = $mc_api->lists->getList( array(
+			'list_id' => $list_id
+		) );
+		$list = $list_results['data'][0];
 
-			// Compose campaign options using what's left in $data
-			$campaign_options = wp_parse_args($data, array(
-				'from_email' => $list['default_from_email'],
-				'from_name' => $list['default_from_name'],
-				'title' => $post->post_title . ' (' . $list['name'] . ')',
-				'subject' => rns_maybe_include_slug_in_subject( $post ),
-				'list_id' => $list_id
-			));
+		// Compose campaign options using what's left in $data
+		$campaign_options = wp_parse_args($data, array(
+			'from_email' => $list['default_from_email'],
+			'from_name' => $list['default_from_name'],
+			'title' => $post->post_title . ' (' . $list['name'] . ')',
+			'subject' => rns_maybe_include_slug_in_subject( $post ),
+			'list_id' => $list_id
+		));
 
-			$html = apply_filters( 'the_content', $post->post_content );
+		$html = apply_filters( 'the_content', $post->post_content );
 
-			$campaign_content = array(
-				'url' => get_permalink( $post->ID )
-			);
+		$campaign_content = array(
+			'url' => get_permalink( $post->ID )
+		);
 
-			$response = $mc_api->campaigns->create(
-				'plaintext',
-				$campaign_options,
-				$campaign_content,
-				null,
-				null
-			);
-			if ( isset( $response['status'] ) && $response['status'] == 'error' ) {
+		$segment_opts = array(
+			'match' => 'any',
+			'conditions' => array(
+				array(
+					'field' => 'interests-' . $group_id,
+					'op' => 'one',
+					'value' => $recipients
+				)
+			)
+		);
+
+		$response = $mc_api->campaigns->create(
+			'plaintext',
+			$campaign_options,
+			$campaign_content,
+			$segment_opts,
+			null
+		);
+
+		if ( isset( $response['status'] ) && $response['status'] == 'error' ) {
+			rns_return_post_to_draft( $post_ID );
+			wp_die( 'Error: ' . $response['error'], 'Error', 'back_link=true' );
+		} else {
+			$sent = $mc_api->campaigns->send( $response['id'] );
+			if ( isset( $sent['complete'] ) && $sent['complete'] == true ) {
+				add_post_meta( $post_ID, '_rns_transmission_sent', 1 );
+			} else if ( isset( $sent['status'] ) && $sent['status'] == 'error' ) {
 				rns_return_post_to_draft( $post_ID );
-				wp_die( 'Error: ' . $response['error'], 'Error', 'back_link=true' );
-			} else {
-				$sent = $mc_api->campaigns->send( $response['id'] );
-				if ( isset( $sent['complete'] ) && $sent['complete'] == true ) {
-					add_post_meta( $post_ID, '_rns_transmission_sent', 1 );
-				} else if ( isset( $sent['status'] ) && $sent['status'] == 'error' ) {
-					rns_return_post_to_draft( $post_ID );
-					wp_die( 'Error: ' . $sent['error'], 'Error', 'back_link=true' );
-				}
+				wp_die( 'Error: ' . $sent['error'], 'Error', 'back_link=true' );
 			}
 		}
 	}

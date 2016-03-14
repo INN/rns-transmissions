@@ -41,40 +41,50 @@ function rns_transmissions_metabox_create() {
  * Create the metabox for choosing Transmission recipients
  */
 function rns_transmissions_recipients_metabox( $post ) {
-  $available_lists = get_option( 'rns_transmissions_lists' );
+	$available_groups = get_option( 'rns_transmissions_lists_groups' );
 
-  /* Get the recipients saved for the post */
-  $recipients = get_post_meta( $post->ID, '_rns_transmission_recipients', false );
-  ?>
+	$options = get_option( 'rns_transmissions_options' );
 
-  <input type="hidden" name="rns_transmissions_meta_nonce" value="<?php echo wp_create_nonce( plugin_basename( __FILE__ ) ); ?>" />
+	if ( ! isset( $options['lists_enabled'] ) ) {
+		echo '<p><a href="' . admin_url('options-general.php?page=rns_transmissions') . '">No recipients available.</p>';
+		echo '<p>Configure Trasnmissions list and group.</a></p>';
+		return;
+	}
 
-  <?php
-  /* Loop through each of the available lists */
-  foreach ( $available_lists as $name => $ID ) {
-    /* For simplicity, don't show the list if it doesn't have our 'Distribution' prefix */
-    if ( strpos( $name, 'Distribution' ) !== false ) {
-      $checked = false;
+	$list_id = $options['lists_enabled'][0];
+	$group_id = $options['list_groups'][$list_id]['default_group'];
 
-      /* If the list has been selected, make sure it's checked */
-      if ( is_array( $recipients ) && in_array( $ID, $recipients ) )
-        $checked = ' checked="checked" ';
+	$groups = array();
+	foreach ( $available_groups[$list_id] as $available_group ) {
+		if ( $available_group['id'] == $group_id )
+			$groups = $available_group['groups'];
+	}
 
-      /* Construct the HTML for the checkboxes */
-      ?>
-        <label for="rns_transmission_recipients[<?php echo $name; ?>]">
-          <input type="checkbox" name="rns_transmission_recipients[<?php echo $name; ?>]" id="rns_transmission_recipients[<?php echo $name; ?>]" <?php echo $checked; ?> value="<?php echo $ID; ?>" />
-          <?php echo esc_html( $name ); ?><br>
-        </label>
-      <?php
-    }
-  }
+	/* Get the recipients saved for the post */
+	$recipients = get_post_meta( $post->ID, '_rns_transmission_recipients', false ); ?>
+	<input type="hidden" name="rns_transmissions_meta_nonce" value="<?php echo wp_create_nonce( plugin_basename( __FILE__ ) ); ?>" />
 
-  if ( current_user_can( 'manage_plugins' ) ) {
-  ?>
+<?php /* Construct the HTML for the checkboxes */
+	foreach ( $groups as $group ) {
+		$checked = '';
+
+		/* If the list has been selected, make sure it's checked */
+		if ( is_array( $recipients ) && in_array( $group['bit'], $recipients ) )
+			$checked = ' checked="checked" '; ?>
+
+		<label for="rns_transmission_recipients[<?php echo $group['name']; ?>]">
+			<input <?php echo $checked; ?>
+				type="checkbox"
+				name="rns_transmission_recipients[<?php echo $group['name']; ?>]"
+				id="rns_transmission_recipients[<?php echo $group['name']; ?>]"
+				value="<?php echo $group['bit']; ?>" /><?php echo $group['name']; ?><br>
+		</label>
+<?php }
+	if ( current_user_can( 'manage_plugins' ) ) {
+?>
   <p><em><?php _e( "Update the list of recipients by visiting the <a href='" . admin_url() . "options-general.php?page=rns_transmissions'>plugin options page</a>", 'rns_transmissions' ); ?></em></p>
-  <?php
-  }
+<?php
+	}
 }
 
 function rns_transmissions_post_page_metabox( $post ) {
@@ -211,7 +221,7 @@ function rns_transmissions_render_info_metabox($post, $args) {
 				$option_tmpl = '<label class="for-option" for="%1$s"><input type="checkbox" name="%1$s[]" id="%1$s" value="%3$s" %5$s> %2$s</label>';
 				$option = sprintf(
 					$option_tmpl, $field['id'], $label, $value, $idx,
-					checked( $value == $field_value || in_array( $value, $field_value ), true, false )
+					checked( $value == $field_value || in_array( $value, (array) $field_value ), true, false )
 				);
 				print $option;
 			}

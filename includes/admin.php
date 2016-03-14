@@ -2,6 +2,7 @@
 
 function rns_transmissions_load_css() {
 	$plugin_url = plugins_url( basename( dirname( __DIR__ ), __DIR__ ) );
+	$current_screen = get_current_screen();
 
 	wp_register_style(
 		'rns_transmissions_css',
@@ -18,7 +19,22 @@ function rns_transmissions_load_css() {
 		'1.0.0',
 		true
 	);
-	wp_enqueue_script( 'rns-download-js' );
+
+	if ( $current_screen->post_type == 'rns_transmission' && $current_screen->base == 'post' ) {
+		wp_enqueue_script( 'rns-download-js' );
+	}
+
+	wp_register_script(
+		'rns-settings-js',
+		$plugin_url . '/assets/js/rns-settings.js',
+		array('jquery'),
+		'1.0.0',
+		true
+	);
+
+	if ( $current_screen->base == 'settings_page_rns_transmissions' ) {
+		wp_enqueue_script( 'rns-settings-js' );
+	}
 }
 add_action( 'admin_enqueue_scripts', 'rns_transmissions_load_css' );
 
@@ -30,16 +46,22 @@ function rns_admin_enqueue_assets() {
 add_action('admin_enqueue_scripts', 'rns_admin_enqueue_assets');
 
 function update_available_lists() {
-	$options = get_option( 'rns_transmissions_options' );
 	$mc_api = mailchimp_tools_get_api_handle();
 	$result = $mc_api->lists->getList();
 
 	if ( ! empty( $result) ) {
-		delete_option( ' rns_transmissions_lists' );
 		foreach ( $result['data'] as $list ) {
 			$lists[$list['name']] = $list['id'];
+
+			try {
+				$groups[$list['id']] = $mc_api->lists->interestGroupings($list['id']);
+			} catch ( Mailchimp_List_InvalidOption $e ) {
+				continue;
+			}
 		}
-		add_option( 'rns_transmissions_lists', $lists );
+		update_option( 'rns_transmissions_lists', $lists );
+		update_option( 'rns_transmissions_lists_groups', $groups );
+
 		echo '
 			<div class="updated">
 			<p>Lists updated.</p>
@@ -54,9 +76,10 @@ function update_available_lists() {
  * Add a submenu item to the Settings menu.
  */
 function rns_transmissions_create_menu() {
-	add_options_page(
+	add_submenu_page(
+		'edit.php?post_type=rns_transmission',
 		'RNS Transmissions Settings',
-		'RNS Transmissions',
+		'Settings',
 		'manage_options',
 		'rns_transmissions',
 		'rns_transmissions_settings_section_page'
@@ -78,7 +101,7 @@ function rns_transmissions_settings_section_page() {
 	settings_fields( 'rns_transmissions_options' );
 	do_settings_sections( 'rns_transmissions' );
 ?>
-	<p><input type="submit" name="Submit" id="" value="Save changes" /></p>
+	<p><?php submit_button( 'Save changes', 'submit', 'Submit' ); ?></p>
 	</form>
   </div><!--/.wrap-->
 <?php
@@ -103,7 +126,7 @@ function rns_transmissions_admin_init() {
 	add_settings_section(
 		'rns_transmissions_enabled_section',
 		'Enabled',
-		'rns_transmissions_enabled_section_text',
+		'__return_false',
 		'rns_transmissions'
 	);
 	add_settings_field(
@@ -124,13 +147,6 @@ function rns_transmissions_admin_init() {
 		'rns_transmissions'
 	);
 	add_settings_field(
-		'rns_transmissions_list_id',
-		'List ID',
-		'rns_transmissions_list_id_input',
-		'rns_transmissions',
-		'rns_transmissions_settings_section'
-	);
-	add_settings_field(
 		'rns_transmissions_from_name',
 		'Transmission\'s \'From\' Name',
 		'rns_transmissions_from_name_input',
@@ -146,7 +162,7 @@ function rns_transmissions_admin_init() {
 	);
 	add_settings_field(
 		'rns_transmissions_lists_available',
-		'Available Lists',
+		'Default list and groups',
 		'rns_transmissions_lists_available_cboxes',
 		'rns_transmissions',
 		'rns_transmissions_settings_section'
@@ -158,7 +174,7 @@ function rns_transmissions_admin_init() {
 	add_settings_section(
 		'rns_transmissions_ewire_settings',
 		'E-WIRE',
-		'rns_transmissions_settings_stories_text',
+		'__return_false',
 		'rns_transmissions'
 	);
 	add_settings_field(
@@ -196,14 +212,6 @@ function rns_transmissions_api_key_input() {
 	echo "<input type='text' name='rns_transmissions_options[api_key]' id='api_key' value='$api_key' size='50' />";
 }
 
-function rns_transmissions_client_id_input() {
-	/* Get option 'client_id' value from the database */
-	$options = get_option( 'rns_transmissions_options' );
-	$client_id = $options['client_id'];
-	/* Echo the field */
-	echo "<input type='text' name='rns_transmissions_options[client_id]' id='client_id' value='$client_id' size='50' />";
-}
-
 function rns_transmissions_list_id_input() {
 	/* Get option 'list_id' value from the database */
 	$options = get_option( 'rns_transmissions_options' );
@@ -230,17 +238,39 @@ function rns_transmissions_from_email_input() {
 
 function rns_transmissions_lists_available_cboxes() {
 	$available_lists = get_option( 'rns_transmissions_lists' );
+	$available_groups = get_option( 'rns_transmissions_lists_groups' );
+	$options = get_option( 'rns_transmissions_options' );
+	$default_list = $options['lists_enabled'][0];
+
 	echo '<fieldset>';
 	echo '<legend class="screen-reader-text">Available lists</legend>';
+	echo '<div id="rns-default-lists-groups">';
 
 	foreach ( $available_lists as $name => $ID ) {
-		echo '<label for="rns_transmissions_options[lists_enabled][' . $name . ']">';
-		echo '<input name="rns_transmissions_options[lists_enabled][' . $name . ']" type="checkbox" id="rns_transmissions_options[lists_enabled][' . $name . ']" value="' . $ID . '"> ';
+		$disabled = ( empty( $available_groups[$ID] ) ) ? 'disabled="disabled"' : '';
+		echo '<label for="rns_transmissions_options_' . $ID . '">';
+		echo '<input ' . $disabled . ' ' . checked( $ID, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . $ID . '" value="' . $ID . '"> ';
 		echo $name;
+
+		if ( ! empty( $available_groups[$ID] ) ) {
+			$default_group = $options['list_groups'][$ID]['default_group'];
+
+			echo '<br>';
+			echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
+			foreach ( $available_groups[$ID] as $group ) {
+				echo '<label for="rns_transmissions_options_'. $group['id'] . '_default_group">';
+				echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . $ID . '][default_group]" type="radio" id="rns_transmissions_options_' . $group['id'] . '_default_group" value="' . $group['id'] . '" >';
+				echo $group['name'];
+				echo '</label><br>';
+			}
+			echo '</div>';
+		}
+
 		echo '</label><br>';
 	}
 
 	echo '</fieldset>';
+	echo '</div>';
 }
 
 function rns_transmissions_ewire_heading_boilerplate_input() {
@@ -271,39 +301,6 @@ function rns_transmissions_validate_options( $input ) {
 	/* Create an empty array and collect in this array only the values you expect */
 	$valid = array();
 
-	if ( ctype_alnum( $input['api_key'] ) ) {
-		$valid['api_key'] = $input['api_key'];
-	} else {
-		add_settings_error(
-			'rns_transmissions_api_key',
-			'rns_transmissions_error',
-			'Error: API Key may contain only letters and numbers',
-			'error'
-		);
-	}
-
-	if ( ctype_alnum( $input['client_id'] ) ) {
-		$valid['client_id'] = $input['client_id'];
-	} else {
-		add_settings_error(
-			'rns_transmissions_client_id',
-			'rns_transmissions_error',
-			'Error: Client ID may contain only letters and numbers',
-			'error'
-		);
-	}
-
-	if ( ctype_alnum( $input['list_id'] ) ) {
-		$valid['list_id'] = $input['list_id'];
-	} else {
-		add_settings_error(
-			'rns_transmissions_list_id',
-			'rns_transmissions_error',
-			'Error: List ID may contain only letters and numbers',
-			'error'
-		);
-	}
-
 	$valid['from_name'] = sanitize_text_field( $input['from_name'] );
 	if ( $valid['from_name'] != $input['from_name'] ) {
 		add_settings_error(
@@ -324,17 +321,19 @@ function rns_transmissions_validate_options( $input ) {
 		);
 	}
 
-	foreach ( $input['lists_enabled'] as $name => $ID ) {
-		if ( ctype_alnum( $ID ) ) {
-			$valid['lists_enabled'][] = array( 'Name' => $name, 'ID' => $ID );
-		} else {
-			add_settings_error(
-				'rns_transmissions_lists_enabled',
-				'rns_transmissions_error',
-				'Error: API Key may contain only letters and numbers',
-				'error'
-			);
-		}
+	if ( ctype_alnum( $input['lists_enabled'] ) ) {
+		$valid['lists_enabled'] = array( $input['lists_enabled'] );
+	} else {
+		add_settings_error(
+			'rns_transmissions_lists_enabled',
+			'rns_transmissions_error',
+			'Error: List ID may contain only letters and numbers',
+			'error'
+		);
+	}
+
+	if ( is_array( $input['list_groups'] ) ) {
+		$valid['list_groups'] = $input['list_groups'];
 	}
 
 	$valid['ewire_heading_boilerplate'] = wp_kses( $input['ewire_heading_boilerplate'], array( 'br' => array() ) );
