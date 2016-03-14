@@ -108,7 +108,7 @@ function rns_send_transmission( $post_ID, $post ) {
 		$html = apply_filters( 'the_content', $post->post_content );
 
 		$campaign_content = array(
-			'url' => get_permalink( $post->ID )
+			'text' => file_get_contents( get_permalink( $post->ID ) )
 		);
 
 		$segment_opts = array(
