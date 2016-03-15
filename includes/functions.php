@@ -304,6 +304,27 @@ function rns_get_daily_report_index_header( $post = null ) {
  * @return WP_Query|bool
  */
 function rns_get_daily_report_connections( $post ) {
+	$connected_ids = get_post_meta( $post->ID, 'rns_transmissions_connected_posts', true );
+	$connected = new WP_Query( array(
+		'post__in' => $connected_ids,
+		'post_status' => 'any',
+		'nopaging' => true,
+		'post_type' => array( 'post', 'rns_transmission' )
+	) );
+	return $connected;
+}
+
+/**
+ * Query for posts connected to a daily report
+ *
+ * DEPRECATED. Previously `rns_get_daily_report_connections`.
+ *
+ * Maintained here for migration purposes.
+ *
+ * @param  WP_Post $post The post object of the daily report
+ * @return WP_Query|bool
+ */
+function rns_get_daily_report_p2p_connections( $post ) {
 	$connected = new WP_Query( array(
 		'connected_type' => 'rns_transmissions_daily_report',
 		'connected_items' => $post,

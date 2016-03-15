@@ -8,5 +8,6 @@
     ],
     "require": {
         "inn/wordpress-mailchimp-tools": "dev-master"
-    }
+    },
+    "minimum-stability": "dev"
 }
