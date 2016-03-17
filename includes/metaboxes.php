@@ -4,6 +4,8 @@
  * owes a massive debt to Justin Tadlock's Members plugin.
  */
 
+include_once __DIR__ . '/connections.php';
+
 add_action( 'add_meta_boxes', 'rns_transmissions_metabox_create' );
 add_action( 'save_post', 'rns_transmissions_save_meta', 10, 2 );
 
@@ -34,6 +36,12 @@ function rns_transmissions_metabox_create() {
 		'rns_transmission',
 		'side',
 		'default'
+	);
+	add_meta_box(
+		'rns-connections',
+		'Add Articles To A Daily Report',
+		'rns_add_connections_meta_box_callback',
+		'rns_transmission'
 	);
 }
 

@@ -309,7 +309,8 @@ function rns_get_daily_report_connections( $post ) {
 		'post__in' => $connected_ids,
 		'post_status' => 'any',
 		'nopaging' => true,
-		'post_type' => array( 'post', 'rns_transmission' )
+		'post_type' => array( 'post', 'rns_transmission' ),
+		'orderby' => 'post__in'
 	) );
 	return $connected;
 }

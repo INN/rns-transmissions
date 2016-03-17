@@ -6,7 +6,7 @@ function rns_transmissions_load_css() {
 
 	wp_register_style(
 		'rns_transmissions_css',
-		$plugin_url . '/transmissions.css',
+		$plugin_url . '/assets/css/transmissions.css',
 		false,
 		'1.0.0'
 	);
@@ -20,8 +20,17 @@ function rns_transmissions_load_css() {
 		true
 	);
 
+	wp_register_script(
+		'rns-connect-posts-js',
+		$plugin_url . '/assets/js/rns-connect-posts.js',
+		array('jquery', 'jquery-ui-sortable', 'backbone'),
+		'1.0.0',
+		true
+	);
+
 	if ( $current_screen->post_type == 'rns_transmission' && $current_screen->base == 'post' ) {
 		wp_enqueue_script( 'rns-download-js' );
+		wp_enqueue_script( 'rns-connect-posts-js' );
 	}
 
 	wp_register_script(
