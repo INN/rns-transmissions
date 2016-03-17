@@ -162,13 +162,14 @@
     },
 
     renderAvailable: function() {
+      this.$el.find('.rns-available-connections').html('');
+
       if (typeof this.available == 'undefined' || !this.available.length)
         return;
 
       var self = this,
           tmpl = _.template($('#rns-connection-add-item-tmpl').html());
 
-      self.$el.find('.rns-available-connections').html('');
       self.available.each(function(model) {
         self.$el.find('.rns-available-connections').append(tmpl(model.toJSON()));
       });
@@ -177,13 +178,14 @@
     },
 
     renderConnected: function() {
+      this.$el.find('.rns-connections').html('');
+
       if (!this.collection.length)
         return;
 
       var self = this,
           tmpl = _.template($('#rns-connection-item-tmpl').html());
 
-      this.$el.find('.rns-connections').html('');
       this.collection.each(function(model) {
         self.$el.find('.rns-connections').append(tmpl(model.toJSON()));
       });
@@ -256,13 +258,15 @@
           connected_ids = ((typeof post_meta.rns_transmissions_connected_posts !== 'undefined') ?
                            post_meta.rns_transmissions_connected_posts : []);
 
-      transmissions.fetch({
-        args: {
-          post__in: connected_ids,
-          orderby: 'post__in'
-        },
-        reset: false
-      });
+      if ( connected_ids.length ) {
+        transmissions.fetch({
+          args: {
+            post__in: connected_ids,
+            orderby: 'post__in'
+          },
+          reset: false
+        });
+      }
     };
 
     transmission.fetch({

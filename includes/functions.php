@@ -305,14 +305,16 @@ function rns_get_daily_report_index_header( $post = null ) {
  */
 function rns_get_daily_report_connections( $post ) {
 	$connected_ids = get_post_meta( $post->ID, 'rns_transmissions_connected_posts', true );
-	$connected = new WP_Query( array(
-		'post__in' => $connected_ids,
-		'post_status' => 'any',
-		'nopaging' => true,
-		'post_type' => array( 'post', 'rns_transmission' ),
-		'orderby' => 'post__in'
-	) );
-	return $connected;
+	if ( ! empty( $connected_ids ) ) {
+		$connected = new WP_Query( array(
+			'post__in' => $connected_ids,
+			'post_status' => 'any',
+			'nopaging' => true,
+			'post_type' => array( 'post', 'rns_transmission' ),
+			'orderby' => 'post__in'
+		) );
+	}
+	return ( ! empty( $connected ) ) ? $connected : false ;
 }
 
 /**
