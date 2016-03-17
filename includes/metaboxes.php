@@ -54,8 +54,8 @@ function rns_transmissions_recipients_metabox( $post ) {
 	$options = get_option( 'rns_transmissions_options' );
 
 	if ( ! isset( $options['lists_enabled'] ) ) {
-		echo '<p><a href="' . admin_url('options-general.php?page=rns_transmissions') . '">No recipients available.</p>';
-		echo '<p>Configure Trasnmissions list and group.</a></p>';
+		echo '<p><a href="' . admin_url('edit.php?post_type=rns_transmission&page=rns_transmissions') . '">No recipients available.</a></p>';
+		echo '<p><a href="' . admin_url('edit.php?post_type=rns_transmission&page=rns_transmissions') . '">Configure Trasnmissions list and group.</a></p>';
 		return;
 	}
 
