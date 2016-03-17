@@ -26,11 +26,23 @@ function rns_add_connections_meta_box_callback() {
 
 function rns_add_connections_js_templates() { ?>
 <script type="text/template" id="rns-connection-item-tmpl">
-	<div class="rns-connection" data-id="<%= ID %>"><a class="rns-remove-connection" href="#">x</a> <%= post_title %> <span class="sortable-handle"></span></div>
+	<div class="rns-connection" data-id="<%= ID %>">
+	<% if (post_title.trim() == '' && post_status == 'draft') { %>
+		<a class="rns-remove-connection" href="#">x</a> <em>Draft</em> <span class="sortable-handle"></span>
+	<% } else { %>
+		<a class="rns-remove-connection" href="#">x</a> <%= post_title %> <span class="sortable-handle"></span>
+	<% } %>
+	</div>
 </script>
 
 <script type="text/template" id="rns-connection-add-item-tmpl">
-	<div class="rns-available-connection" data-id="<%= ID %>"><a class="rns-add-connection" href="#">+</a> <%= post_title %> <span class="sortable-handle"></span></div>
+	<div class="rns-available-connection" data-id="<%= ID %>">
+	<% if (post_title.trim() == '' && post_status == 'draft') { %>
+		<a class="rns-add-connection" href="#">+</a> <em>Draft</em></span>
+	<% } else { %>
+		<a class="rns-add-connection" href="#">+</a> <%= post_title %></span>
+	<% } %>
+	</div>
 </script>
 <?php }
 
@@ -39,10 +51,8 @@ function rns_transmissions_ajax() {
 	$data = json_decode(stripslashes($_POST['data']), true);
 
 	if ( $path == 'transmissions' ) {
-		if ( isset( $data['post_ids'] ) ) {
-			echo rns_transmissions_collection_json($data['post_ids']);
-		} else if ( isset( $data['search_term'] ) ) {
-			echo rns_transmissions_collection_json(null, $data['search_term']);
+		if ( isset( $data['args'] ) ) {
+			echo rns_transmissions_collection_json( $data['args'] );
 		} else {
 			echo rns_transmissions_collection_json();
 		}
@@ -59,24 +69,14 @@ function rns_transmissions_ajax() {
 }
 add_action( 'wp_ajax_rns_transmissions_ajax', 'rns_transmissions_ajax' );
 
-function rns_transmissions_collection_json($post_ids=array(), $search_term=null) {
-	$args = array(
+function rns_transmissions_collection_json($args=array()) {
+	$args = wp_parse_args( $args, array(
 		'post_status' => 'any',
 		'post_type' => array( 'rns_transmission' ),
 		'posts_per_page' => 10,
-		'paged' => '1'
-	);
-
-	if ( ! empty( $post_ids ) ) {
-		$args['post__in'] = $post_ids;
-		$args['orderby'] = 'post__in';
-	} else {
-		$args['order'] = 'DESC';
-	}
-
-	if ( ! empty( $search_term ) ) {
-		$args['s'] = $search_term;
-	}
+		'paged' => '1',
+		'order' => 'DESC'
+	) );
 
 	$posts = new WP_Query( $args );
 	return json_encode( $posts->posts );

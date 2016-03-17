@@ -65,9 +65,15 @@
           target = $(event.currentTarget),
           search = new Transmissions();
 
+      var post_not_in = this.collection.map(function(model) { return model.get('ID'); })
+      post_not_in.push($('#post_ID').val());
+
       self.showSpinner();
       search.fetch({
-        search_term: target.val(),
+        args: {
+          s: target.val(),
+          post__not_in: post_not_in
+        },
         success: function() {
           self.available = search;
           self.renderAvailable();
@@ -75,7 +81,10 @@
         }
       });
 
-      return false;
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if (keycode == '13') {
+          return false;
+      }
     }, 500),
 
     sortStop: function(event, ui) {
@@ -94,12 +103,15 @@
           post = this.collection.at(idx);
 
       this.collection.remove(post);
+      if (typeof this.available !== 'undefined') {
+        this.available.add(post);
+      }
       this.saveTransmission();
       return false;
     },
 
     addConnection: function(event) {
-      var target = $(event.currentTarget).parent(),
+      var target = $(event.currentTarget),
           idx = target.parent().find('> div').index(target),
           post = this.available.at(idx);
 
@@ -127,6 +139,7 @@
 
     render: function() {
       this.renderConnected();
+      this.renderAvailable();
       this.hideSpinner();
       return this;
     },
@@ -134,14 +147,24 @@
     selectPosts: function() {
       this.$el.find('.rns-create-connections').show();
       this.showSpinner();
+
+      var post_not_in = _.map(this.$el.find('.rns-connection'), function(el) { return $(el).data('id'); });
+      post_not_in.push(Number($('#post_ID').val()));
+
       this.available = new Transmissions();
       this.available.fetch({
+        args: {
+          post__not_in: post_not_in
+        },
         success: this.renderAvailable.bind(this)
       });
       return false;
     },
 
     renderAvailable: function() {
+      if (typeof this.available == 'undefined' || !this.available.length)
+        return;
+
       var self = this,
           tmpl = _.template($('#rns-connection-add-item-tmpl').html());
 
@@ -234,7 +257,10 @@
                            post_meta.rns_transmissions_connected_posts : []);
 
       transmissions.fetch({
-        post_ids: connected_ids,
+        args: {
+          post__in: connected_ids,
+          orderby: 'post__in'
+        },
         reset: false
       });
     };
