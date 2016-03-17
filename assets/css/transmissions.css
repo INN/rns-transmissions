@@ -1,3 +1,7 @@
+#rns-connections a {
+  text-decoration: none;
+}
+
 #rns-connections-view .spinner {
   position: absolute;
   bottom: 10px;
@@ -7,7 +11,6 @@
 .rns-available-connections,
 .rns-connections {
   margin: 20px 0;
-  /*border: 1px solid #ddd;*/
 }
 
 .rns-available-connection,
@@ -18,9 +21,10 @@
 }
 
 .sortable-handle {
-  width: 30px;
+  width: 20px;
   height: 20px;
   float: right;
+  margin-right: 10px;
 }
 
 .rns-available-connection:hover {
@@ -29,7 +33,7 @@
 }
 
 .rns-connection:hover .sortable-handle {
-  background: #aaa;
+  background: transparent url("../images/sort.png") no-repeat center center;
 }
 
 .sortable-handle:hover {

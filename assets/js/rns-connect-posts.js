@@ -249,7 +249,7 @@
       model: transmission,
       collection: transmissions,
       el: '#rns-connections-view'
-    }).render();
+    });
 
     connections_view.collection.on('reset', connections_view.render.bind(connections_view));
 

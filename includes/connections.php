@@ -8,7 +8,12 @@ function rns_add_connections_meta_box_callback() {
 		<div class="rns-connections"><?php
 		if ( ! empty( $connected->posts ) ) {
 			foreach ( $connected->posts as $connection) { ?>
-				<div class="rns-connection" data-id="<?php echo $connection->ID; ?>"><a class="rns-remove-connection" href="#">x</a> <?php echo $connection->post_title; ?>
+				<div class="rns-connection" data-id="<?php echo $connection->ID; ?>"><a class="rns-remove-connection" href="#">x</a> <?php
+					if ( $connection->post_status == 'draft' && trim( $connection->post_title ) == '' ) {
+						echo '<em>Draft</em>';
+					} else {
+						echo $connection->post_title;
+					} ?>
 					<span class="sortable-handle"></span></div>
 			<?php }
 		}
