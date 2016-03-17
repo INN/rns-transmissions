@@ -41,7 +41,7 @@ function rns_transmissions_load_css() {
 		true
 	);
 
-	if ( $current_screen->base == 'settings_page_rns_transmissions' ) {
+	if ( $current_screen->base == 'rns_transmission_page_rns_transmissions' ) {
 		wp_enqueue_script( 'rns-settings-js' );
 	}
 }
