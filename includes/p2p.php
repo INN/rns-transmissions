@@ -1,6 +1,6 @@
 <?php
 
-//add_action( 'p2p_init', 'rns_transmissions_connection_types' );
+add_action( 'p2p_init', 'rns_transmissions_connection_types' );
 function rns_transmissions_connection_types() {
   p2p_register_connection_type( array(
     'name' => 'rns_transmissions_daily_report',

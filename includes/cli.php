@@ -1,5 +1,7 @@
 <?php
 
+require_once( __DIR__ . '/p2p.php' );
+
 /**
  * Manage RNS Transmissions migration tasks
  */
@@ -13,11 +15,17 @@ class Transmissions_WP_CLI_Command extends WP_CLI_Command {
 	 *
 	 */
 	public function migrate() {
+		if ( ! defined( 'P2P_PLUGIN_VERSION' ) ) {
+			WP_CLI::error('The posts 2 posts plugin must be enabled for this migration to work.');
+			die();
+		}
+
 		$args = array(
 			'nopaging' => true,
 			'post_type' => 'rns_transmission'
 		);
 		$query = new WP_Query($args);
+
 
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Migrating connected posts', count( $query->posts ) );
 
