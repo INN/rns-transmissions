@@ -10,19 +10,19 @@ License: GPLv2 or later
 License URI:
 */
 
+/**
+ * Mailchimp API and Modal Functions
+ */
+if ( ! class_exists( 'Mailchimp' ) && file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+}
+
 // Dashboard functions such as the settings page
 function rns_transmission_init() {
 	define( 'RNS_TRANSMISSIONS_DIR', __DIR__ );
 
 	if ( is_admin() ){
 	  require_once( __DIR__ . '/includes/admin.php' );
-	}
-
-	/**
-	 * Mailchimp API and Modal Functions
-	 */
-	if ( ! function_exists( 'mailchimp_tools_register_for_post_type' ) && file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-		require_once __DIR__ . '/vendor/autoload.php';
 	}
 
 	require_once( __DIR__ . '/includes/metaboxes.php' );
