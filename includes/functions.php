@@ -76,10 +76,10 @@ function rns_create_transmission( $data ) {
 		'byline' => rns_get_byline_from_coauthors( $data['coauthors'] ),
 		'overline' => 'NEWS STORY',
 		'wordcount' => rns_get_word_count_estimate( $args['post_content'] ),
-		'eds_note' => 'Eds: There IS/ARE XXXX PHOTO/PHOTOS available for WEB-ONLY/WEB AND PRINT at the time of publication. Please refer to this story on religionnews.com for those and any additional photos.',
-		'categories' => 'c, l',
+		'eds_note' => 'A photo is available for web and print. Please refer to this story at religionnews.com for the photo.',
+		'categories' => 'c,a',
 		'copyright' => 'c. ' . date( 'Y' ) . ' Religion News Service',
-		'end_line' => 'XXX/XXX END XXXXXX',
+		'end_line' => '',
 	));
 
 	if ( $defaults ) {
