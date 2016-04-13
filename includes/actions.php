@@ -102,7 +102,8 @@ function rns_send_transmission( $post_ID, $post ) {
 			'from_name' => $list['default_from_name'],
 			'title' => $post->post_title . ' (' . $list['name'] . ')',
 			'subject' => rns_maybe_include_slug_in_subject( $post ),
-			'list_id' => $list_id
+			'list_id' => $list_id,
+			'generate_text' => true
 		));
 
 		$html = apply_filters( 'the_content', $post->post_content );
