@@ -62,9 +62,13 @@
   margin-left: 140px;
 }
 
+#rns_transmissions_info textarea,
 #rns_transmissions_info input[type="text"] {
   width: 100%;
   max-width: 250px;
+}
+#rns_transmissions_info textarea {
+  min-height: 80px;
 }
 
 .rns-create-connections {

@@ -234,6 +234,11 @@ function rns_transmissions_render_info_metabox($post, $args) {
 				print $option;
 			}
 			print '</div>';
+		} else if ( $field['type'] == 'textarea_small' ) {
+			$input_tmpl = '<div class="form-group"><label class="for-group" for="%1$s">%2$s</label><textarea type="text" name="%1$s" id="%1$s">%3$s</textarea></div>';
+			$val = ( ! empty( $field_value ) ) ? $field_value : $field['value'];
+			$input = sprintf( $input_tmpl, $field['id'], $field['name'], $val );
+			print $input;
 		}
 	}
 }
