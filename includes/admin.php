@@ -1,5 +1,4 @@
 <?php
-
 function rns_transmissions_load_css() {
 	$plugin_url = plugins_url( basename( dirname( __DIR__ ), __DIR__ ) );
 	$current_screen = get_current_screen();
@@ -56,7 +55,10 @@ add_action('admin_enqueue_scripts', 'rns_admin_enqueue_assets');
 
 function update_available_lists() {
 	$mc_api = mailchimp_tools_get_api_handle();
-	$result = $mc_api->lists->getList();
+echo '<pre>';
+var_dump( $mc_api );
+echo '</pre>';
+	$result = $mc_api->get('lists');
 
 	if ( ! empty( $result) ) {
 		foreach ( $result['data'] as $list ) {
@@ -64,7 +66,7 @@ function update_available_lists() {
 
 			try {
 				$groups[$list['id']] = $mc_api->lists->interestGroupings($list['id']);
-			} catch ( Mailchimp_List_InvalidOption $e ) {
+			} catch ( MailChimp_List_InvalidOption $e ) {
 				continue;
 			}
 		}
