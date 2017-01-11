@@ -55,21 +55,19 @@ add_action('admin_enqueue_scripts', 'rns_admin_enqueue_assets');
 
 function update_available_lists() {
 	$mc_api = mailchimp_tools_get_api_handle();
-echo '<pre>';
-var_dump( $mc_api );
-echo '</pre>';
 	$result = $mc_api->get('lists');
 
 	if ( ! empty( $result) ) {
-		foreach ( $result['data'] as $list ) {
+		foreach ( $result['lists'] as $list ) {
 			$lists[$list['name']] = $list['id'];
 
 			try {
-				$groups[$list['id']] = $mc_api->lists->interestGroupings($list['id']);
+				$groups[$list['id']] = $mc_api->get( 'lists/' . $list['id'] . '/interest-categories' );
 			} catch ( MailChimp_List_InvalidOption $e ) {
 				continue;
 			}
 		}
+
 		update_option( 'rns_transmissions_lists', $lists );
 		update_option( 'rns_transmissions_lists_groups', $groups );
 
@@ -268,10 +266,10 @@ function rns_transmissions_lists_available_cboxes() {
 
 			echo '<br>';
 			echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
-			foreach ( $available_groups[$ID] as $group ) {
+			foreach ( $available_groups[$ID]['categories'] as $group ) {
 				echo '<label for="rns_transmissions_options_'. $group['id'] . '_default_group">';
 				echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . $ID . '][default_group]" type="radio" id="rns_transmissions_options_' . $group['id'] . '_default_group" value="' . $group['id'] . '" >';
-				echo $group['name'];
+				echo $group['title'];
 				echo '</label><br>';
 			}
 			echo '</div>';
