@@ -218,7 +218,7 @@ function rns_transmissions_api_key_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$api_key = $options['api_key'];
 	/* Echo the field */
-	echo '<input type="text" name="rns_transmissions_options[api_key]" id="api_key" value="' . esc_attr( $api_key ) . '" size='50' />';
+	echo '<input type="text" name="rns_transmissions_options[api_key]" id="api_key" value="' . esc_attr( $api_key ) . '" size="50" />';
 }
 
 function rns_transmissions_list_id_input() {

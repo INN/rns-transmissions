@@ -82,7 +82,9 @@ function rns_send_transmission( $post_id, $post ) {
 	}
 
 	/* Final safety checks */
-	if ( 'publish' !== $post->post_status ) : rns_generic_transmission_error();
+	if ( 'publish' !== $post->post_status ) {
+		rns_generic_transmission_error();
+	}
 	// Assume a type is required if a distribution list is selected
 	if ( empty( $type ) ) {
 		rns_no_transmission_type_selected_error();
@@ -153,9 +155,9 @@ function rns_send_transmission( $post_id, $post ) {
 			wp_die( 'Error: ' . wp_kses( $response['error'] ), 'Error', 'back_link=true' );
 		} else {
 			// Add content to the campaign
-			$content_response = $mc_api->put( 'campaigns/' . $response['id'] . '/content',
-				'html' => file_get_contents( get_permalink( $post->ID ) )
-			);
+			$content_response = $mc_api->put( 'campaigns/' . $response['id'] . '/content', [
+				'html' => file_get_contents( get_permalink( $post->ID ) ),
+			]);
 
 			$sent = $mc_api->post( 'campaigns/' . $response['id'] . '/actions/send' );
 			if ( isset( $sent['status'] ) && 'error' === $sent['status'] ) {
