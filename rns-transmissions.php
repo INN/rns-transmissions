@@ -13,8 +13,8 @@ License URI:
 /**
  * MailChimp API and Modal Functions
  */
-if ( ! class_exists( 'MailChimp' ) && file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor/autoload.php';
+if ( ! class_exists( 'MailChimp' ) && file_exists( __DIR__ . '/wordpress-mailchimp-tools/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/wordpress-mailchimp-tools/vendor/autoload.php';
 }
 
 // Dashboard functions such as the settings page

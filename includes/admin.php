@@ -55,8 +55,10 @@ add_action( 'admin_enqueue_scripts', 'rns_admin_enqueue_assets' );
 
 function update_available_lists() {
 	$mc_api = mailchimp_tools_get_api_handle();
+	if ( empty( $mc_api ) ) {
+		wp_die( 'Please <a href="/wp-admin/options-general.php?page=mailchimp_settings">enter your MailChimp API Key</a> before proceeding.' );
+	}
 	$result = $mc_api->get( 'lists' );
-
 	if ( ! empty( $result ) ) {
 		foreach ( $result['lists'] as $list ) {
 			$lists[ $list['name'] ] = $list['id'];
@@ -255,27 +257,31 @@ function rns_transmissions_lists_available_cboxes() {
 	echo '<legend class="screen-reader-text">Available lists</legend>';
 	echo '<div id="rns-default-lists-groups">';
 
-	foreach ( $available_lists as $name => $id ) {
-		$disabled = ( empty( $available_groups[ $id ] ) ) ? 'disabled="disabled"' : '';
-		echo '<label for="rns_transmissions_options_' . intval( $id ) . '">';
-		echo '<input ' . esc_attr( $disabled ) . ' ' . checked( $id, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . intval( $id ) . '" value="' . intval( $id ) . '"> ';
-		echo esc_html( $name );
+	if ( $available_lists ) {
+		foreach ( $available_lists as $name => $id ) {
+			$disabled = ( empty( $available_groups[ $id ] ) ) ? 'disabled="disabled"' : '';
+			echo '<label for="rns_transmissions_options_' . intval( $id ) . '">';
+			echo '<input ' . esc_attr( $disabled ) . ' ' . checked( $id, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . intval( $id ) . '" value="' . intval( $id ) . '"> ';
+			echo esc_html( $name );
 
-		if ( ! empty( $available_groups[ $id ] ) ) {
-			$default_group = $options['list_groups'][ $id ]['default_group'];
+			if ( ! empty( $available_groups[ $id ] ) ) {
+				$default_group = $options['list_groups'][ $id ]['default_group'];
 
-			echo '<br>';
-			echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
-			foreach ( $available_groups[ $id ]['categories'] as $group ) {
-				echo '<label for="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group">';
-				echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . intval( $id ) . '][default_group]" type="radio" id="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group" value="' . intval( $group['id'] ) . '" >';
-				echo esc_html( $group['title'] );
-				echo '</label><br>';
+				echo '<br>';
+				echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
+				foreach ( $available_groups[ $id ]['categories'] as $group ) {
+					echo '<label for="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group">';
+					echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . intval( $id ) . '][default_group]" type="radio" id="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group" value="' . intval( $group['id'] ) . '" >';
+					echo esc_html( $group['title'] );
+					echo '</label><br>';
+				}
+				echo '</div>';
 			}
-			echo '</div>';
-		}
 
-		echo '</label><br>';
+			echo '</label><br>';
+		}
+	} else {
+		echo '<em>You don\'t have any lists setup in MailChimp.</em>';
 	}
 
 	echo '</fieldset>';
