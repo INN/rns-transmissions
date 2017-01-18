@@ -253,7 +253,7 @@ function rns_transmissions_from_email_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$from_email = $options['from_email'];
 	/* Echo the field */
-	echo '<input type="text" name="rns_transmissions_options[from_email]" id="from_email" value="' . esc_attr( $from_email ) . '" size="50" />';
+	echo '<input type="email" name="rns_transmissions_options[from_email]" id="from_email" value="' . esc_attr( $from_email ) . '" size="50" />';
 }
 
 function rns_transmissions_lists_available_cboxes() {
