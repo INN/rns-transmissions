@@ -112,17 +112,17 @@ add_action( 'admin_menu', 'rns_transmissions_create_menu' );
  */
 function rns_transmissions_settings_section_page() {
 	update_available_lists();
-?>
+	?>
 	<div class="wrap">
-	<?php screen_icon(); ?>
-	<h2>RNS Transmissions</h2>
-	<form action="options.php" method="post" accept-charset="utf-8">
-<?php
-	settings_fields( 'rns_transmissions_options' );
-	do_settings_sections( 'rns_transmissions' );
-?>
-	<p><?php submit_button( 'Save changes', 'submit', 'Submit' ); ?></p>
-	</form>
+		<?php screen_icon(); ?>
+		<h2>RNS Transmissions</h2>
+		<form action="options.php" method="post" accept-charset="utf-8">
+		<?php
+			settings_fields( 'rns_transmissions_options' );
+			do_settings_sections( 'rns_transmissions' );
+		?>
+		<p><?php submit_button( 'Save changes', 'submit', 'Submit' ); ?></p>
+		</form>
 	</div><!--/.wrap-->
 <?php
 }
