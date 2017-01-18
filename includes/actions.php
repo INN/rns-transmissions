@@ -167,7 +167,7 @@ function rns_send_transmission( $post_id, $post ) {
 			} else {
 				add_post_meta( $post_id, '_rns_transmission_sent', 1 );
 			}
-		}
+		} // End if().
 	} // End if().
-} // End if().
+}
 add_action( 'publish_rns_transmission', 'rns_send_transmission', 30, 2 );
