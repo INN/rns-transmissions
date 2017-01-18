@@ -111,8 +111,7 @@ function rns_send_transmission( $post_id, $post ) {
 		$group_id = $options['list_groups'][ $list_id ]['default_group'];
 
 		// Grab the list from MC to use its default values for to/from address
-		$list_results = $mc_api->get( 'lists/' . $list_id );
-		$list = $list_results['data'][0];
+		$list = $mc_api->get( 'lists/' . $list_id );
 
 		// Compose campaign options using what's left in $data
 		$campaign_recipients = wp_parse_args( $data, array(
@@ -125,17 +124,19 @@ function rns_send_transmission( $post_id, $post ) {
 		$campaign_content = array(
 			'subject_line' => rns_maybe_include_slug_in_subject( $post ),
 			'title' => $post->post_title . ' (' . $list['name'] . ')',
-			'from_name' => $list['default_from_name'],
-			'reply_to' => $list['default_from_email'],
+			'from_name' => $list['campaign_defaults']['from_name'],
+			'reply_to' => $list['campaign_defaults']['from_email'],
 		);
 
 		$segment_opts = array(
 			'match' => 'any',
 			'conditions' => array(
-				'condition_type' => 'Interests',
-				'field' => 'interests-' . $group_id,
-				'op' => 'one',
-				'value' => $recipients,
+				array(
+					'condition_type' => 'Interests',
+					'field' => 'interests-' . $group_id,
+					'op' => 'interestcontains',
+					'value' => $recipients,
+				),
 			),
 		);
 

@@ -64,7 +64,16 @@ function update_available_lists() {
 			$lists[ $list['name'] ] = $list['id'];
 
 			try {
-				$groups[ $list['id'] ] = $mc_api->get( 'lists/' . $list['id'] . '/interest-categories' );
+				$list_groups = $mc_api->get( 'lists/' . $list['id'] . '/interest-categories' );
+				if ( ! empty( $list_groups ) ) {
+					$groups[ $list['id'] ] = $list_groups;
+					foreach ( $list_groups['categories'] as $key => $interest_group ) {
+						$interest_categories = $mc_api->get( 'lists/' . $interest_group['list_id'] . '/interest-categories/' . $interest_group['id'] . '/interests' );
+						if ( ! empty( $interest_categories ) ) {
+							$groups[ $list['id'] ]['categories'][$key]['interests'] = $interest_categories['interests']; // @TODO need to work with this to get it assigned to the right location
+						}
+					}
+				}
 			} catch ( MailChimp_List_InvalidOption $e ) {
 				continue;
 			}
@@ -252,7 +261,6 @@ function rns_transmissions_lists_available_cboxes() {
 	$available_groups = get_option( 'rns_transmissions_lists_groups' );
 	$options = get_option( 'rns_transmissions_options' );
 	$default_list = $options['lists_enabled'][0];
-
 	echo '<fieldset>';
 	echo '<legend class="screen-reader-text">Available lists</legend>';
 	echo '<div id="rns-default-lists-groups">';
@@ -261,7 +269,7 @@ function rns_transmissions_lists_available_cboxes() {
 		foreach ( $available_lists as $name => $id ) {
 			$disabled = ( empty( $available_groups[ $id ] ) ) ? 'disabled="disabled"' : '';
 			echo '<label for="rns_transmissions_options_' . intval( $id ) . '">';
-			echo '<input ' . esc_attr( $disabled ) . ' ' . checked( $id, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . intval( $id ) . '" value="' . intval( $id ) . '"> ';
+			echo '<input ' . esc_attr( $disabled ) . ' ' . checked( $id, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . $id . '" value="' . $id . '"> ';
 			echo esc_html( $name );
 
 			if ( ! empty( $available_groups[ $id ] ) ) {
@@ -271,7 +279,7 @@ function rns_transmissions_lists_available_cboxes() {
 				echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
 				foreach ( $available_groups[ $id ]['categories'] as $group ) {
 					echo '<label for="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group">';
-					echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . intval( $id ) . '][default_group]" type="radio" id="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group" value="' . intval( $group['id'] ) . '" >';
+					echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . $id . '][default_group]" type="radio" id="rns_transmissions_options_' . $group['id'] . '_default_group" value="' . $group['id'] . '" >';
 					echo esc_html( $group['title'] );
 					echo '</label><br>';
 				}
