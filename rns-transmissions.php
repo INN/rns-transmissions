@@ -3,7 +3,7 @@
 Plugin Name: RNS Transmissions
 Plugin URI:
 Description: Send emails to subscribers in WordPress
-Version: 1.2.2
+Version: 1.3
 Author: INN Nerds, David Herrera
 Author URI: http://nerds.inn.org
 License: GPLv2 or later
