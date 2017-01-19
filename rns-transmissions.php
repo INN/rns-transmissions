@@ -3,7 +3,7 @@
 Plugin Name: RNS Transmissions
 Plugin URI:
 Description: Send emails to subscribers in WordPress
-Version: 1.2.2
+Version: 1.3
 Author: INN Nerds, David Herrera
 Author URI: http://nerds.inn.org
 License: GPLv2 or later
@@ -11,10 +11,10 @@ License URI:
 */
 
 /**
- * Mailchimp API and Modal Functions
+ * MailChimp API and Modal Functions
  */
-if ( ! class_exists( 'Mailchimp' ) && file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor/autoload.php';
+if ( ! class_exists( 'MailChimp' ) && file_exists( __DIR__ . '/wordpress-mailchimp-tools/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/wordpress-mailchimp-tools/vendor/autoload.php';
 }
 
 // Dashboard functions such as the settings page

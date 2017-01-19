@@ -50,7 +50,6 @@ function rns_transmissions_metabox_create() {
  */
 function rns_transmissions_recipients_metabox( $post ) {
 	$available_groups = get_option( 'rns_transmissions_lists_groups' );
-
 	$options = get_option( 'rns_transmissions_options' );
 
 	if ( ! isset( $options['lists_enabled'] ) ) {
@@ -63,9 +62,10 @@ function rns_transmissions_recipients_metabox( $post ) {
 	$group_id = $options['list_groups'][$list_id]['default_group'];
 
 	$groups = array();
-	foreach ( $available_groups[$list_id] as $available_group ) {
-		if ( $available_group['id'] == $group_id )
-			$groups = $available_group['groups'];
+	foreach ( $available_groups[$list_id]['categories'] as $available_group ) {
+		if ( $available_group['id'] == $group_id ) {
+			$groups = $available_group['interests'];
+		}
 	}
 
 	/* Get the recipients saved for the post */
@@ -77,15 +77,16 @@ function rns_transmissions_recipients_metabox( $post ) {
 		$checked = '';
 
 		/* If the list has been selected, make sure it's checked */
-		if ( is_array( $recipients ) && in_array( $group['bit'], $recipients ) )
-			$checked = ' checked="checked" '; ?>
-
+		if ( is_array( $recipients ) && in_array( $group['id'], $recipients ) ) {
+			$checked = ' checked="checked" ';
+		}
+		?>
 		<label for="rns_transmission_recipients[<?php echo $group['name']; ?>]">
 			<input <?php echo $checked; ?>
 				type="checkbox"
 				name="rns_transmission_recipients[<?php echo $group['name']; ?>]"
 				id="rns_transmission_recipients[<?php echo $group['name']; ?>]"
-				value="<?php echo $group['bit']; ?>" /><?php echo $group['name']; ?><br>
+				value="<?php echo $group['id']; ?>" /><?php echo $group['name']; ?><br>
 		</label>
 <?php }
 	if ( current_user_can( 'manage_plugins' ) ) {

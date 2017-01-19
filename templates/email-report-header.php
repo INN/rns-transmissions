@@ -22,7 +22,7 @@ the_content();
 
 // Query for connections
 $connected = rns_get_daily_report_connections( get_queried_object() );
-if ( $connected->have_posts() ) :
+if ( $connected && $connected->have_posts() ) :
 
 	// Index
 	$index_header = rns_get_daily_report_index_header( $post );

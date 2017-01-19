@@ -1,5 +1,4 @@
 <?php
-
 function rns_transmissions_load_css() {
 	$plugin_url = plugins_url( basename( dirname( __DIR__ ), __DIR__ ) );
 	$current_screen = get_current_screen();
@@ -15,7 +14,7 @@ function rns_transmissions_load_css() {
 	wp_register_script(
 		'rns-download-js',
 		$plugin_url . '/assets/js/rns-download.js',
-		array('jquery'),
+		array( 'jquery' ),
 		'1.0.0',
 		true
 	);
@@ -23,12 +22,12 @@ function rns_transmissions_load_css() {
 	wp_register_script(
 		'rns-connect-posts-js',
 		$plugin_url . '/assets/js/rns-connect-posts.js',
-		array('jquery', 'jquery-ui-sortable', 'backbone'),
+		array( 'jquery', 'jquery-ui-sortable', 'backbone' ),
 		'1.0.0',
 		true
 	);
 
-	if ( $current_screen->post_type == 'rns_transmission' && $current_screen->base == 'post' ) {
+	if ( 'rns_transmission' === $current_screen->post_type && 'post' === $current_screen->base ) {
 		wp_enqueue_script( 'rns-download-js' );
 		wp_enqueue_script( 'rns-connect-posts-js' );
 	}
@@ -36,12 +35,12 @@ function rns_transmissions_load_css() {
 	wp_register_script(
 		'rns-settings-js',
 		$plugin_url . '/assets/js/rns-settings.js',
-		array('jquery'),
+		array( 'jquery' ),
 		'1.0.0',
 		true
 	);
 
-	if ( $current_screen->base == 'rns_transmission_page_rns_transmissions' ) {
+	if ( 'rns_transmission_page_rns_transmissions' === $current_screen->base ) {
 		wp_enqueue_script( 'rns-settings-js' );
 	}
 }
@@ -52,22 +51,34 @@ add_action( 'admin_enqueue_scripts', 'rns_transmissions_load_css' );
  */
 function rns_admin_enqueue_assets() {
 }
-add_action('admin_enqueue_scripts', 'rns_admin_enqueue_assets');
+add_action( 'admin_enqueue_scripts', 'rns_admin_enqueue_assets' );
 
 function update_available_lists() {
 	$mc_api = mailchimp_tools_get_api_handle();
-	$result = $mc_api->lists->getList();
-
-	if ( ! empty( $result) ) {
-		foreach ( $result['data'] as $list ) {
-			$lists[$list['name']] = $list['id'];
+	if ( empty( $mc_api ) ) {
+		wp_die( 'Please <a href="/wp-admin/options-general.php?page=mailchimp_settings">enter your MailChimp API Key</a> before proceeding.' );
+	}
+	$result = $mc_api->get( 'lists' );
+	if ( ! empty( $result ) ) {
+		foreach ( $result['lists'] as $list ) {
+			$lists[ $list['name'] ] = $list['id'];
 
 			try {
-				$groups[$list['id']] = $mc_api->lists->interestGroupings($list['id']);
-			} catch ( Mailchimp_List_InvalidOption $e ) {
+				$list_groups = $mc_api->get( 'lists/' . $list['id'] . '/interest-categories' );
+				if ( ! empty( $list_groups ) ) {
+					$groups[ $list['id'] ] = $list_groups;
+					foreach ( $list_groups['categories'] as $key => $interest_group ) {
+						$interest_categories = $mc_api->get( 'lists/' . $interest_group['list_id'] . '/interest-categories/' . $interest_group['id'] . '/interests' );
+						if ( ! empty( $interest_categories ) ) {
+							$groups[ $list['id'] ]['categories'][$key]['interests'] = $interest_categories['interests']; // @TODO need to work with this to get it assigned to the right location
+						}
+					}
+				}
+			} catch ( MailChimp_List_InvalidOption $e ) {
 				continue;
 			}
 		}
+
 		update_option( 'rns_transmissions_lists', $lists );
 		update_option( 'rns_transmissions_lists_groups', $groups );
 
@@ -101,18 +112,18 @@ add_action( 'admin_menu', 'rns_transmissions_create_menu' );
  */
 function rns_transmissions_settings_section_page() {
 	update_available_lists();
-?>
-  <div class="wrap">
-	<?php screen_icon(); ?>
-	<h2>RNS Transmissions</h2>
-	<form action="options.php" method="post" accept-charset="utf-8">
-<?php
-	settings_fields( 'rns_transmissions_options' );
-	do_settings_sections( 'rns_transmissions' );
-?>
-	<p><?php submit_button( 'Save changes', 'submit', 'Submit' ); ?></p>
-	</form>
-  </div><!--/.wrap-->
+	?>
+	<div class="wrap">
+		<?php screen_icon(); ?>
+		<h2>RNS Transmissions</h2>
+		<form action="options.php" method="post" accept-charset="utf-8">
+		<?php
+			settings_fields( 'rns_transmissions_options' );
+			do_settings_sections( 'rns_transmissions' );
+		?>
+		<p><?php submit_button( 'Save changes', 'submit', 'Submit' ); ?></p>
+		</form>
+	</div><!--/.wrap-->
 <?php
 }
 
@@ -218,7 +229,7 @@ function rns_transmissions_api_key_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$api_key = $options['api_key'];
 	/* Echo the field */
-	echo "<input type='text' name='rns_transmissions_options[api_key]' id='api_key' value='$api_key' size='50' />";
+	echo '<input type="text" name="rns_transmissions_options[api_key]" id="api_key" value="' . esc_attr( $api_key ) . '" size="50" />';
 }
 
 function rns_transmissions_list_id_input() {
@@ -226,7 +237,7 @@ function rns_transmissions_list_id_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$list_id = $options['list_id'];
 	/* Echo the field */
-	echo "<input type='text' name='rns_transmissions_options[list_id]' id='list_id' value='$list_id' size='50' />";
+	echo '<input type="text" name="rns_transmissions_options[list_id]" id="list_id" value="' . esc_attr( $list_id ) . '" size="50" />';
 }
 
 function rns_transmissions_from_name_input() {
@@ -234,7 +245,7 @@ function rns_transmissions_from_name_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$from_name = $options['from_name'];
 	/* Echo the field */
-	echo "<input type='text' name='rns_transmissions_options[from_name]' id='from_name' value='$from_name' size='50' />";
+	echo '<input type="text" name="rns_transmissions_options[from_name]" id="from_name" value="' . esc_attr( $from_name ) . '" size="50" />';
 }
 
 function rns_transmissions_from_email_input() {
@@ -242,7 +253,7 @@ function rns_transmissions_from_email_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$from_email = $options['from_email'];
 	/* Echo the field */
-	echo "<input type='text' name='rns_transmissions_options[from_email]' id='from_email' value='$from_email' size='50' />";
+	echo '<input type="email" name="rns_transmissions_options[from_email]" id="from_email" value="' . esc_attr( $from_email ) . '" size="50" />';
 }
 
 function rns_transmissions_lists_available_cboxes() {
@@ -250,32 +261,35 @@ function rns_transmissions_lists_available_cboxes() {
 	$available_groups = get_option( 'rns_transmissions_lists_groups' );
 	$options = get_option( 'rns_transmissions_options' );
 	$default_list = $options['lists_enabled'][0];
-
 	echo '<fieldset>';
 	echo '<legend class="screen-reader-text">Available lists</legend>';
 	echo '<div id="rns-default-lists-groups">';
 
-	foreach ( $available_lists as $name => $ID ) {
-		$disabled = ( empty( $available_groups[$ID] ) ) ? 'disabled="disabled"' : '';
-		echo '<label for="rns_transmissions_options_' . $ID . '">';
-		echo '<input ' . $disabled . ' ' . checked( $ID, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . $ID . '" value="' . $ID . '"> ';
-		echo $name;
+	if ( $available_lists ) {
+		foreach ( $available_lists as $name => $id ) {
+			$disabled = ( empty( $available_groups[ $id ] ) ) ? 'disabled="disabled"' : '';
+			echo '<label for="rns_transmissions_options_' . intval( $id ) . '">';
+			echo '<input ' . esc_attr( $disabled ) . ' ' . checked( $id, $default_list, false ) . ' name="rns_transmissions_options[lists_enabled]" type="radio" id="rns_transmissions_options_' . $id . '" value="' . $id . '"> ';
+			echo esc_html( $name );
 
-		if ( ! empty( $available_groups[$ID] ) ) {
-			$default_group = $options['list_groups'][$ID]['default_group'];
+			if ( ! empty( $available_groups[ $id ] ) ) {
+				$default_group = $options['list_groups'][ $id ]['default_group'];
 
-			echo '<br>';
-			echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
-			foreach ( $available_groups[$ID] as $group ) {
-				echo '<label for="rns_transmissions_options_'. $group['id'] . '_default_group">';
-				echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . $ID . '][default_group]" type="radio" id="rns_transmissions_options_' . $group['id'] . '_default_group" value="' . $group['id'] . '" >';
-				echo $group['name'];
-				echo '</label><br>';
+				echo '<br>';
+				echo '<div class="nested-group" style="margin: 10px 0 0 20px;">';
+				foreach ( $available_groups[ $id ]['categories'] as $group ) {
+					echo '<label for="rns_transmissions_options_' . intval( $group['id'] ) . '_default_group">';
+					echo '<input ' . checked( $group['id'], $default_group, false ) . ' name="rns_transmissions_options[list_groups][' . $id . '][default_group]" type="radio" id="rns_transmissions_options_' . $group['id'] . '_default_group" value="' . $group['id'] . '" >';
+					echo esc_html( $group['title'] );
+					echo '</label><br>';
+				}
+				echo '</div>';
 			}
-			echo '</div>';
-		}
 
-		echo '</label><br>';
+			echo '</label><br>';
+		}
+	} else {
+		echo '<em>You don\'t have any lists setup in MailChimp.</em>';
 	}
 
 	echo '</fieldset>';
@@ -285,25 +299,25 @@ function rns_transmissions_lists_available_cboxes() {
 function rns_transmissions_ewire_heading_boilerplate_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$ewire_heading_boilerplate = $options['ewire_heading_boilerplate'];
-	echo "<textarea name='rns_transmissions_options[ewire_heading_boilerplate]' id='ewire_heading_boilerplate' rows='5' cols='50'>" . $ewire_heading_boilerplate . "</textarea>";
+	echo '<textarea name="rns_transmissions_options[ewire_heading_boilerplate]" id="ewire_heading_boilerplate" rows="5" cols="50">' . esc_html( $ewire_heading_boilerplate ) . '</textarea>';
 }
 
 function rns_transmissions_ewire_separator_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$ewire_separator = $options['ewire_separator'];
-	echo "<input type='text' name='rns_transmissions_options[ewire_separator]' id='ewire_separator' value='$ewire_separator' size='50' />";
+	echo '<input type="text" name="rns_transmissions_options[ewire_separator]" id="ewire_separator" value="' . esc_html( $ewire_separator ) . '" size="50" />';
 }
 
 function rns_transmissions_default_ap_headers_input() {
 	$options = get_option( 'rns_transmissions_options' );
 	$default_ap_headers = $options['default_ap_headers'];
-	echo "<textarea name='rns_transmissions_options[default_ap_headers]' id='default_ap_headers' rows='5' cols='50'>" . $default_ap_headers . "</textarea>";
+	echo '<textarea name="rns_transmissions_options[default_ap_headers]" id="default_ap_headers" rows="5" cols="50">' . esc_html( $default_ap_headers ) . '</textarea>';
 }
 
 function rns_transmissions_is_enabled_input() {
 	$options = get_option( 'rns_transmissions_options' );
-	$checked = $is_enabled = $options['is_enabled'];
-	echo "<input type='checkbox' name='rns_transmissions_options[is_enabled]' id='is_enabled' value='1' " . checked( $checked, true, false ) . " />";
+	$checked = $options['is_enabled'];
+	echo '<input type="checkbox" name="rns_transmissions_options[is_enabled]" id="is_enabled" value="1" ' . checked( $checked, true, false ) . ' />';
 }
 
 function rns_transmissions_validate_options( $input ) {
@@ -311,7 +325,7 @@ function rns_transmissions_validate_options( $input ) {
 	$valid = array();
 
 	$valid['from_name'] = sanitize_text_field( $input['from_name'] );
-	if ( $valid['from_name'] != $input['from_name'] ) {
+	if ( $valid['from_name'] !== $input['from_name'] ) {
 		add_settings_error(
 			'rns_transmissions_from_name',
 			'rns_transmissions_error',
@@ -321,7 +335,7 @@ function rns_transmissions_validate_options( $input ) {
 	}
 
 	$valid['from_email'] = is_email( $input['from_email'] );
-	if ( $valid['from_email'] != $input['from_email'] ) {
+	if ( $valid['from_email'] !== $input['from_email'] ) {
 		add_settings_error(
 			'rns_transmissions_from_email',
 			'rns_transmissions_error',
@@ -346,7 +360,7 @@ function rns_transmissions_validate_options( $input ) {
 	}
 
 	$valid['ewire_heading_boilerplate'] = wp_kses( $input['ewire_heading_boilerplate'], array( 'br' => array() ) );
-	if ( $valid['ewire_heading_boilerplate'] != $input['ewire_heading_boilerplate'] ) {
+	if ( $valid['ewire_heading_boilerplate'] !== $input['ewire_heading_boilerplate'] ) {
 		add_settings_error(
 			'rns_transmissions_ewire_heading_boilerplate',
 			'rns_transmissions_error',
@@ -356,7 +370,7 @@ function rns_transmissions_validate_options( $input ) {
 	}
 
 	$valid['ewire_separator'] = sanitize_text_field( $input['ewire_separator'] );
-	if ( $valid['ewire_separator'] != $input['ewire_separator'] ) {
+	if ( $valid['ewire_separator'] !== $input['ewire_separator'] ) {
 		add_settings_error(
 			'rns_transmissions_ewire_separator',
 			'rns_transmissions_error',
@@ -366,7 +380,7 @@ function rns_transmissions_validate_options( $input ) {
 	}
 
 	$valid['default_ap_headers'] = wp_strip_all_tags( $input['default_ap_headers'] );
-	if ( $valid['default_ap_headers'] != $input['default_ap_headers'] ) {
+	if ( $valid['default_ap_headers'] !== $input['default_ap_headers'] ) {
 		add_settings_error(
 			'rns_transmissions_default_ap_headers',
 			'rns_transmissions_error',
@@ -400,9 +414,11 @@ function rns_transmissions_pending_transmission_admin_notice() {
  */
 function disable_for_cpt( $default ) {
 	global $post;
-	if ( 'rns_transmission' == get_post_type( $post ) )
+	if ( 'rns_transmission' === get_post_type( $post ) ) {
 		return false;
-	return $default;
+	} else {
+		return $default;
+	}
 }
 add_filter( 'user_can_richedit', 'disable_for_cpt' );
 
@@ -413,7 +429,7 @@ add_filter( 'user_can_richedit', 'disable_for_cpt' );
  */
 function rns_transmissions_admin_scripts() {
 	global $post, $hook_suffix;
-	if ( $post && 'rns_transmission' == $post->post_type && 'post-new.php' == $hook_suffix ) {
+	if ( $post && 'rns_transmission' === $post->post_type && 'post-new.php' === $hook_suffix ) {
 ?>
 		<script type="text/javascript">
 		jQuery(document).ready(function($) {

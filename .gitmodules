@@ -1,0 +1,3 @@
+[submodule "wordpress-mailchimp-tools"]
+	path = wordpress-mailchimp-tools
+	url = https://github.com/INN/wordpress-mailchimp-tools.git
